@@ -7,8 +7,7 @@ from pymongo import AsyncMongoClient
 load_dotenv()
 
 MONGODB_URI: str = os.getenv(
-    "MONGODB_URI",
-    "mongodb+srv://root:idontknowitman@projects.a99yr9s.mongodb.net/?appName=projects",
+    "MONGODB_URI"
 )
 DATABASE_NAME: str = os.getenv("DATABASE_NAME", "departments")
 
