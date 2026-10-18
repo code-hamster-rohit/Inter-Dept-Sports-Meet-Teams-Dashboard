@@ -1,0 +1,29 @@
+# Python virtual environment
+.venv/
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Local Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+
+# Vercel Deployment & Build artifacts
+.vercel/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Scratch and export test files
+*.log
+*.xlsx
+test_*.csv

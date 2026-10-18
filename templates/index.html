@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Official tournament directory and live roster viewer for all registered department teams in Inter-Dept Sports Meet 2026 at IIT Roorkee.">
+  <title>Registered Teams Directory | Inter-Dept Sports Meet 2026</title>
+
+  <!-- Google Fonts: Outfit (Headings) & Inter (Body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Core Design System CSS -->
+  <link rel="stylesheet" href="/static/css/index.css">
+</head>
+<body>
+
+  <!-- Ambient Glow Effects and Architectural Grid -->
+  <div class="ambient-background" aria-hidden="true">
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+    <div class="glow-orb glow-orb-3"></div>
+  </div>
+  <div class="grid-pattern" aria-hidden="true"></div>
+
+  <!-- Application Shell -->
+  <div class="app-shell">
+
+    <!-- Top Sticky Navigation Bar -->
+    <header class="navbar" role="banner">
+      <div class="nav-container">
+        <a href="/" class="nav-brand" id="nav-brand-logo" aria-label="Inter-Dept Sports Meet Dashboard Home">
+          <div class="brand-logo-badge">🏆</div>
+          <div class="brand-text-group">
+            <span class="brand-title">IIT Roorkee Sports Meet</span>
+            <span class="brand-subtitle">Inter-Dept Championship 2026</span>
+          </div>
+        </a>
+
+        <div class="nav-actions">
+          <!-- Database Sync Status Pill -->
+          <div class="status-pill" id="db-status-pill" title="Connected to MongoDB Atlas">
+            <span class="pulse-dot"></span>
+            <span>Live Atlas Sync</span>
+          </div>
+
+          <!-- Refresh Data Button -->
+          <button class="btn-nav" id="btn-refresh-data" title="Refresh Live Data">
+            <span>🔄</span>
+            <span>Refresh</span>
+          </button>
+
+          <!-- Export Action Buttons: 16-Sheet Workbook & Flat CSV -->
+          <div class="export-buttons-group">
+            <a href="/api/export/excel" class="btn-nav btn-nav-primary" id="btn-export-excel" title="Download 16-Sheet Styled Excel Workbook (1 sheet per sport)">
+              <span>📊</span>
+              <span>Export Workbook</span>
+            </a>
+            <a href="/api/export/csv?format=raw_csv" class="btn-nav" id="btn-export-csv" title="Download Standard Flat CSV">
+              <span>📄</span>
+              <span>CSV</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-content" role="main">
+
+      <!-- Hero Section -->
+      <section class="hero-section" aria-labelledby="main-heading">
+        <div class="hero-header">
+          <div>
+            <div class="hero-badge">
+              <span>⚡</span>
+              <span>Official Tournament Registry</span>
+            </div>
+            <h1 class="hero-title" id="main-heading">
+              Registered Teams <span class="hero-title-highlight">Directory</span>
+            </h1>
+            <p class="hero-description">
+              Explore all confirmed department rosters, squad compositions, and captain details for the Inter-Department Sports Championship 2026.
+            </p>
+          </div>
+        </div>
+
+        {% if db_error %}
+        <!-- MongoDB Atlas Network / IP Alert Notice -->
+        <div style="background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 16px; padding: 18px 22px; margin-bottom: 24px;">
+          <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <span style="font-size: 1.6rem; line-height: 1;">⚠️</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 700; color: #f87171; font-size: 1rem; margin-bottom: 6px;">
+                MongoDB Atlas Network Alert
+              </div>
+              <p style="font-size: 0.88rem; color: #fca5a5; line-height: 1.5; margin: 0;">
+                {{ db_error }}. Ensure your IP address is whitelisted under Atlas Network Access.
+              </p>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Aggregated Tournament Statistics -->
+        <div class="stats-grid" id="dashboard-metrics">
+          <!-- Total Teams -->
+          <div class="stat-card" id="stat-total-teams">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Registered Teams</span>
+              <div class="stat-card-icon" style="color: #38bdf8;">👥</div>
+            </div>
+            <div class="stat-card-value">{{ stats.total_teams }}</div>
+            <div class="stat-card-subtext">
+              <span>Confirmed tournament entries</span>
+            </div>
+            <div class="dept-pills-row">
+              <span class="dept-pill-mini amsc">AMSC: {{ stats.dept_counts.amsc }}</span>
+              <span class="dept-pill-mini ppe">PPE: {{ stats.dept_counts.ppe }}</span>
+              <span class="dept-pill-mini ppt">PPT: {{ stats.dept_counts.ppt }}</span>
+            </div>
+          </div>
+
+          <!-- Total Competing Athletes -->
+          <div class="stat-card" id="stat-total-athletes">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Total Athletes</span>
+              <div class="stat-card-icon" style="color: #a855f7;">🏃</div>
+            </div>
+            <div class="stat-card-value">{{ stats.total_athletes }}</div>
+            <div class="stat-card-subtext">
+              <span>Unique registered students</span>
+            </div>
+            <div class="dept-pills-row">
+              <span class="dept-pill-mini" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);">
+                👦 Boys: {{ stats.gender_counts.Boy }}
+              </span>
+              <span class="dept-pill-mini" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.3);">
+                👧 Girls: {{ stats.gender_counts.Girl }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Competing Departments -->
+          <div class="stat-card" id="stat-departments">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Departments</span>
+              <div class="stat-card-icon" style="color: #10b981;">🏛️</div>
+            </div>
+            <div class="stat-card-value">3</div>
+            <div class="stat-card-subtext">
+              <span>AMSC · PPE · PPT</span>
+            </div>
+            <div class="dept-pills-row">
+              <span class="dept-pill-mini" style="background: rgba(255, 255, 255, 0.08); color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.15);">
+                IITR Campuses
+              </span>
+            </div>
+          </div>
+
+          <!-- Sports Breakdown -->
+          <div class="stat-card" id="stat-sports-count">
+            <div class="stat-card-header">
+              <span class="stat-card-title">Event Categories</span>
+              <div class="stat-card-icon" style="color: #f59e0b;">🎯</div>
+            </div>
+            <div class="stat-card-value">16</div>
+            <div class="stat-card-subtext">
+              <span>{{ stats.category_counts.Boys }} Boys · {{ stats.category_counts.Girls }} Girls · {{ stats.category_counts.Mixed }} Mixed</span>
+            </div>
+            <div class="dept-pills-row">
+              <span class="dept-pill-mini" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">
+                🏆 Gold Medal Contests
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Directory Content -->
+      <section class="content-area" aria-label="Directory Filters and Teams List">
+
+        <!-- Filter Controls Panel -->
+        <div class="filter-panel" id="filter-controls-panel">
+          <div class="filter-grid">
+            <!-- Search Bar -->
+            <div class="search-input-wrapper">
+              <span class="search-icon">🔍</span>
+              <input
+                type="text"
+                id="search-input"
+                class="search-input"
+                placeholder="Search athlete, captain, student ID, or sport..."
+                aria-label="Search teams and athletes"
+              >
+            </div>
+
+            <!-- Sport Selector -->
+            <div class="select-wrapper">
+              <select id="sport-filter-select" class="custom-select" aria-label="Filter by sport">
+                <option value="all">All Sports (16)</option>
+                {% for sid, sc in sports.items() %}
+                <option value="{{ sid }}">{{ sc.icon }} {{ sc.display_name }}</option>
+                {% endfor %}
+              </select>
+              <span class="select-arrow">▼</span>
+            </div>
+
+            <!-- Category Selector -->
+            <div class="select-wrapper">
+              <select id="category-filter-select" class="custom-select" aria-label="Filter by category">
+                <option value="all">All Categories</option>
+                <option value="Boys">👦 Boys Only</option>
+                <option value="Girls">👧 Girls Only</option>
+                <option value="Mixed">🤝 Mixed Squads</option>
+              </select>
+              <span class="select-arrow">▼</span>
+            </div>
+
+            <!-- Sort By Selector -->
+            <div class="select-wrapper">
+              <select id="sort-select" class="custom-select" aria-label="Sort registered teams">
+                <option value="sport-asc">Sort: Sport (A - Z)</option>
+                <option value="sport-desc">Sort: Sport (Z - A)</option>
+                <option value="dept-asc">Sort: Department</option>
+                <option value="strength-desc">Sort: Largest Squad</option>
+                <option value="date-desc">Sort: Recently Added</option>
+              </select>
+              <span class="select-arrow">▼</span>
+            </div>
+
+            <!-- View Mode Toggles -->
+            <div class="view-toggles" role="group" aria-label="View layout switch">
+              <button class="btn-toggle active" id="btn-view-grid" title="Cards Grid Layout">
+                <span>▦</span>
+                <span>Cards</span>
+              </button>
+              <button class="btn-toggle" id="btn-view-table" title="Table Roster Layout">
+                <span>≡</span>
+                <span>Table</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary Department Tabs -->
+          <div class="dept-tabs-bar" role="tablist" aria-label="Department filters">
+            <span class="dept-tab-label">Filter Department:</span>
+            <button class="dept-tab-btn active" data-dept="all" role="tab" id="tab-dept-all">
+              <span>All Departments</span>
+              <span class="tab-badge" id="tab-count-all">{{ teams|length }}</span>
+            </button>
+            <button class="dept-tab-btn amsc" data-dept="amsc" role="tab" id="tab-dept-amsc">
+              <span>AMSC</span>
+              <span class="tab-badge">{{ stats.dept_counts.amsc }}</span>
+            </button>
+            <button class="dept-tab-btn ppe" data-dept="ppe" role="tab" id="tab-dept-ppe">
+              <span>PPE</span>
+              <span class="tab-badge">{{ stats.dept_counts.ppe }}</span>
+            </button>
+            <button class="dept-tab-btn ppt" data-dept="ppt" role="tab" id="tab-dept-ppt">
+              <span>PPT</span>
+              <span class="tab-badge">{{ stats.dept_counts.ppt }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dynamic Results Summary Header -->
+        <div class="results-summary-row">
+          <div class="results-count-text">
+            Showing <strong id="results-count">{{ teams|length }}</strong> of <strong id="total-count">{{ teams|length }}</strong> registered teams
+          </div>
+          <button class="btn-reset-filters" id="btn-reset-filters" type="button">
+            Reset all filters
+          </button>
+        </div>
+
+        <!-- Cards Grid View -->
+        <div class="teams-grid-container" id="teams-grid-view">
+          <!-- Rendered dynamically by static/js/index.js -->
+        </div>
+
+        <!-- Table View -->
+        <div class="teams-table-container" id="teams-table-view" style="display: none;">
+          <table class="teams-table">
+            <thead>
+              <tr>
+                <th scope="col">Department</th>
+                <th scope="col">Sport & Category</th>
+                <th scope="col">Team Captain</th>
+                <th scope="col">Squad Size</th>
+                <th scope="col">Registered On</th>
+                <th scope="col" style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="teams-table-body">
+              <!-- Rendered dynamically by static/js/index.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state-box" id="empty-state" style="display: none;">
+          <span class="empty-icon">🔍</span>
+          <h2 class="empty-title">No matching teams found</h2>
+          <p class="empty-desc">
+            We couldn't find any registered teams matching your active search and filter criteria. Try adjusting your query or resetting filters.
+          </p>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer" role="contentinfo">
+      <p>
+        Inter-Department Sports Meet 2026 · Indian Institute of Technology Roorkee
+      </p>
+      <p style="margin-top: 6px; font-size: 0.75rem; color: #475569;">
+        Live Squad Registry & Department Roster Portal · Built with FastAPI & Vanilla JS
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- Interactive Squad Details Modal -->
+  <div class="modal-backdrop" id="team-detail-modal" role="dialog" aria-modal="true" aria-labelledby="modal-team-title">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-bubble" id="modal-sport-icon">🏅</div>
+          <div>
+            <h2 class="modal-title" id="modal-team-title">Department - Sport</h2>
+            <div class="modal-subtitle">
+              <span class="badge-dept" id="modal-dept-badge">DEPT</span>
+              <span id="modal-team-subtitle">Category · Formula</span>
+            </div>
+          </div>
+        </div>
+        <button class="btn-close-modal" id="btn-close-modal" aria-label="Close modal">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div>
+          <div class="modal-section-title">
+            <span>Confirmed Team Roster</span>
+            <span style="font-weight: 400; text-transform: none; color: var(--text-dim);" id="modal-team-id"></span>
+          </div>
+          <div class="roster-grid-modal" id="modal-roster-grid">
+            <!-- Populated dynamically by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div style="font-size: 0.8rem; color: var(--text-dim);">
+          Registered: <span id="modal-reg-date" style="color: #cbd5e1;"></span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-nav" id="btn-modal-copy-roster" type="button">
+            <span>📋</span>
+            <span>Copy Roster</span>
+          </button>
+          <button class="btn-nav btn-nav-primary" id="btn-modal-print" type="button">
+            <span>🖨️</span>
+            <span>Print Sheet</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <!-- Server-Provided Initial State in JSON script element to avoid IDE syntax errors -->
+  <script type="application/json" id="initial-teams-data">
+    {{ teams | tojson | safe }}
+  </script>
+  <script>
+    try {
+      const dataEl = document.getElementById("initial-teams-data");
+      window.__INITIAL_TEAMS__ = dataEl && dataEl.textContent.trim() ? JSON.parse(dataEl.textContent) : [];
+    } catch (e) {
+      window.__INITIAL_TEAMS__ = [];
+    }
+  </script>
+
+  <!-- Client-side Controller -->
+  <script src="/static/js/index.js"></script>
+</body>
+</html>
